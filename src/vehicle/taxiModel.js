@@ -3,14 +3,12 @@
  * Local space: +Z forward, +X left, Y up, origin on the ground between the axles.
  */
 import { MeshBuilder, MAT, rgb } from '../gfx/meshBuilder.js';
+import { pixelText, textWidth } from '../gfx/pixelFont.js';
 
 const IVORY = rgb(0xe8dcb0); // RAL 1015 "Hellelfenbein", the classic German taxi colour
 const GLASS = rgb(0x1d252d), TRIM = rgb(0x2a2a2a), SIGN = rgb(0xf5c400), INK = rgb(0x111111);
 const HEADLIGHT = rgb(0xfff4d6), TAILLIGHT = rgb(0xb3121b), TIRE = rgb(0x1b1b1b), RIM = rgb(0xb9bcc0);
 
-// 3x5 pixel font, rows top to bottom. All four letters are mirror-symmetric,
-// so the sign reads correctly from the front and from behind.
-const FONT = { T: '111010010010010', A: '010101111101101', X: '101101010101101', I: '111010010010111' };
 
 /** Returns three MeshBuilders: body, one wheel (centred on its axle) and the blob shadow. */
 export function buildTaxi(spec) {
@@ -48,14 +46,12 @@ function buildBody() {
 
   // Roof sign with "TAXI" built from tiny boxes on both faces.
   m.box(-0.3, 1.42, -0.5, 0.3, 1.64, -0.25, SIGN, paint);
-  const px = 0.032, word = 'TAXI', width = (word.length * 4 - 1) * px;
-  [...word].forEach((ch, li) => {
-    for (let i = 0; i < 15; i++) {
-      if (FONT[ch][i] !== '1') continue;
-      const x = -width / 2 + (li * 4 + (i % 3)) * px, y = 1.6 - (Math.floor(i / 3) + 1) * px;
-      m.box(x, y, -0.25, x + px, y + px, -0.24, INK); // front face, reads along +X
-      m.box(-x - px, y, -0.51, -x, y + px, -0.5, INK); // back face, mirrored
-    }
+  // All four letters are mirror-symmetric, so the sign reads correctly from the front and from behind.
+  const px = 0.032, width = textWidth('TAXI') * px;
+  pixelText('TAXI', (col, row) => {
+    const x = -width / 2 + col * px, y = 1.6 - (row + 1) * px;
+    m.box(x, y, -0.25, x + px, y + px, -0.24, INK); // front face, reads along +X
+    m.box(-x - px, y, -0.51, -x, y + px, -0.5, INK); // back face, mirrored
   });
   return m;
 }

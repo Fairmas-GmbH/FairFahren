@@ -2,6 +2,8 @@
  * Turns the city data from cityGen.js into one static mesh (one draw call).
  */
 import { MeshBuilder, MAT, rgb } from '../gfx/meshBuilder.js';
+import { pixelText, textWidth } from '../gfx/pixelFont.js';
+import { DASH } from './cityGen.js';
 
 const C = {
   asphalt: rgb(0x4a4c50), grass: rgb(0x6e8f4e), sidewalk: rgb(0xa29f97), curb: rgb(0x8c8a85),
@@ -10,7 +12,15 @@ const C = {
   sandstone: rgb(0xd8c9a3), copper: rgb(0x5e8c78),
   concrete: rgb(0xdcdcd8), steel: rgb(0xb8bec6), red: rgb(0xc8302c), white: rgb(0xeeeeea),
   trunk: rgb(0x5a4632), leaves: [rgb(0x4f7a3a), rgb(0x5d8a40), rgb(0x46703a)],
+  pole: rgb(0x8a8f96), yellow: rgb(0xf2c230), black: rgb(0x151515),
 };
+// [sides, start angle, outer radius, inner radius, border color, face color]
+const SIGN_SHAPES = {
+  limit: [16, 0, 0.42, 0.33, C.red, C.white],
+  priority: [4, 0, 0.45, 0.3, C.white, C.yellow],
+  yield: [3, -Math.PI / 2, 0.5, 0.3, C.red, C.white],
+};
+const SIGN_Y = 2.3;
 const GROUND = { courtyard: C.courtyard, lawn: C.lawn, park: C.grass, plaza: C.plaza };
 const MARGIN = 600; // countryside around the city, faded out by fog
 const WATER_Y = -1.4;
@@ -24,7 +34,31 @@ export function buildCityMesh(city) {
   for (const mk of city.markings) addDashes(m, mk);
   for (const t of city.trees) addTree(m, t);
   for (const l of city.landmarks) LANDMARKS[l.kind](m, l);
+  for (const s of city.signs) addSign(m, s);
   return m;
+}
+
+/** Pole with a sign plate facing (nx, nz). Signs face an axis direction, so digit boxes stay axis-aligned. */
+function addSign(m, s) {
+  const { x, z, nx, nz } = s, rx = nz, rz = -nx; // (rx, rz) = viewer's right when looking at the sign
+  m.frustum(x, 0.15, z, 0.045, SIGN_Y, 0.045, 5, C.pole);
+  const [sides, a0, outer, inner, border, face] = SIGN_SHAPES[s.type];
+  const plate = (r, w) => Array.from({ length: sides }, (_, i) => {
+    const a = a0 + (i / sides) * Math.PI * 2, u = Math.cos(a) * r;
+    return [x + rx * u + nx * w, SIGN_Y + Math.sin(a) * r, z + rz * u + nz * w];
+  });
+  const front = [x + nx, SIGN_Y, z + nz], behind = [x - nx, SIGN_Y, z - nz];
+  m.poly(plate(outer, 0.07), C.pole, MAT.PLAIN, front); // back side
+  m.poly(plate(outer, 0.09), border, MAT.PLAIN, behind);
+  m.poly(plate(inner, 0.11), face, MAT.PLAIN, behind);
+  if (s.type !== 'limit') return;
+  const px = 0.07, text = String(s.value), width = textWidth(text) * px;
+  const hx = (Math.abs(rx) * px) / 2 + Math.abs(nx) * 0.01, hz = (Math.abs(rz) * px) / 2 + Math.abs(nz) * 0.01;
+  pixelText(text, (col, row) => {
+    const u = -width / 2 + (col + 0.5) * px, y = SIGN_Y + 1.5 * px - row * px;
+    const cx = x + rx * u + nx * 0.12, cz = z + rz * u + nz * 0.12;
+    m.box(cx - hx, y, cz - hz, cx + hx, y + px, cz + hz, C.black);
+  });
 }
 
 /** Asphalt inside the city, grass around it; leaves a gap for the river. */
@@ -82,11 +116,11 @@ function addGable(m, b, y, wall, roof) {
   for (const u of [u0, u1]) m.poly([P(u, y, v0), P(u, y, v1), P(u, y + h, vm)], wall, MAT.PLAIN, inside);
 }
 
-/** Dashed line: 3 m paint, 6 m gap. Segments are axis-aligned. */
+/** Dashed line along an axis-aligned segment. */
 function addDashes(m, { x0, z0, x1, z1 }) {
   const len = Math.hypot(x1 - x0, z1 - z0), dx = (x1 - x0) / len, dz = (z1 - z0) / len, w = 0.08;
-  for (let t = 0; t + 3 <= len; t += 9) {
-    const ax = x0 + dx * t, az = z0 + dz * t, bx = ax + dx * 3, bz = az + dz * 3;
+  for (let t = 0; t + DASH.length <= len; t += DASH.period) {
+    const ax = x0 + dx * t, az = z0 + dz * t, bx = ax + dx * DASH.length, bz = az + dz * DASH.length;
     const ox = Math.abs(dz) * w, oz = Math.abs(dx) * w;
     m.rect(Math.min(ax, bx) - ox, Math.min(az, bz) - oz, Math.max(ax, bx) + ox, Math.max(az, bz) + oz, 0.02, C.marking);
   }

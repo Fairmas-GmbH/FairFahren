@@ -5,8 +5,8 @@ import { join, relative, resolve } from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 
-// MVP uses ~52 KB raw / ~19 KB gzip. The headroom is for candidates' features.
-export const BUDGET = { raw: 96 * 1024, gzip: 32 * 1024 };
+// The base game uses ~69 KB raw / ~25 KB gzip. The headroom is for candidates' features.
+export const BUDGET = { raw: 128 * 1024, gzip: 40 * 1024 };
 
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const walk = (dir) => readdirSync(dir).flatMap((f) => {

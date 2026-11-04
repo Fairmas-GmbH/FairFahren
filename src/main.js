@@ -14,6 +14,8 @@ import { Renderer } from './gfx/renderer.js';
 import { Keyboard } from './game/input.js';
 import { Camera } from './game/camera.js';
 import { Hud } from './game/hud.js';
+import { SensorView } from './game/sensorView.js';
+import { createSensorState, senseEnvironment } from './vehicle/sensors.js';
 import { compose, translation, rotationX, rotationY } from './core/math.js';
 
 const PHYSICS_STEP = 1 / 120; // fixed timestep keeps physics deterministic
@@ -45,9 +47,11 @@ const keyboard = new Keyboard(window);
 const camera = new Camera();
 const hud = new Hud(document);
 hud.set('seed', `Seed ${city.seed}`);
+const sensorState = createSensorState();
+const sensorView = new SensorView(document.querySelector('#sensors'));
 
 // Handy for debugging in the browser console and for automated checks.
-window.fairfahren = { city, car, camera, TAXI };
+window.fairfahren = { city, car, camera, TAXI, sensorState };
 
 let last = performance.now(), accumulator = 0, fps = 60;
 
@@ -61,6 +65,7 @@ function frame(now) {
     camera.snap();
   }
   if (keyboard.consume('KeyC')) camera.next();
+  if (keyboard.consume('KeyV')) sensorView.toggle();
 
   const input = keyboard.driving();
   for (accumulator += dt; accumulator >= PHYSICS_STEP; accumulator -= PHYSICS_STEP) {
@@ -83,6 +88,9 @@ function frame(now) {
   hud.set('speed', String(Math.round(Math.abs(car.speed) * 3.6)));
   hud.set('street', streetAt(city, car.x, car.z));
   hud.set('fps', `${Math.round(fps)} fps · ${camera.modeName} cam`);
+  // Sensors run every frame (they remember the speed limit); drawing only when the panel is shown.
+  const sensed = senseEnvironment(car, city, sensorState);
+  if (sensorView.visible) sensorView.draw(sensed, car, dt);
   keyboard.endFrame();
   requestAnimationFrame(frame);
 }

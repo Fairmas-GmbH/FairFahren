@@ -1,18 +1,17 @@
 # 04 — Candidate brief
 
 > This is the document handed to candidates, together with the repository.
-> (Interviewers: remove `docs/05-interviewer-guide.md` before sharing.)
 
 ## Welcome to FairFahren 🚕
 
-You have a tiny 3D driving game: a Berlin taxi in a procedurally generated city. The whole game is about 50 KB of plain JavaScript — **no assets, no libraries, no build step**. Every building, tree and street comes from one seed number.
+You have a tiny 3D driving game: a Berlin taxi in a procedurally generated city. The whole game is about 70 KB of plain JavaScript — **no assets, no libraries, no build step**. Every building, tree and street comes from one seed number.
 
 Your job is to **extend it**.
 
 ## Ground rules
 
 1. **Stay procedural.** Do not add image, model, audio, font or data files. Generate what you need in code.
-2. **Stay small.** `npm run size` must pass (≤ 96 KB raw, ≤ 32 KB gzip for `index.html` + `src/`).
+2. **Stay small.** `npm run size` must pass (≤ 128 KB raw, ≤ 40 KB gzip for `index.html` + `src/`).
 3. **No dependencies.** No npm packages, no CDN scripts — on the client and on any server you write.
 4. **Stay deterministic.** World content must come from the seeded `Rng`, never from `Math.random()`.
 5. **Keep it green.** `npm test` passes, and new logic comes with tests where it makes sense.
@@ -87,6 +86,7 @@ Turn FairFahren into a short multiplayer race for **2–4 players** on different
 - Spatial grid for collision queries + a micro-benchmark.
 - Gamepad support.
 - Camera that does not clip into buildings.
+- Driver assistance on top of the existing sensors (`src/vehicle/sensors.js`): emergency brake when the collision warning fires, adaptive cruise control, or a speeding warning with a chime. Whatever you add to the world (traffic lights, other cars, passengers) should also appear in the sensor view.
 
 ## What we look for
 

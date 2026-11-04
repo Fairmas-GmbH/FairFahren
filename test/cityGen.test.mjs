@@ -42,6 +42,17 @@ for (const seed of SEEDS) {
       assert.equal(hit, null, 'spawn collides');
     }
     assert.equal(streetAt(city, x, z), 'Unter den Linden');
+
+    // Traffic signs stand on a sidewalk (inside a block, outside its inner area) and face along an axis.
+    assert.ok(city.signs.length > 30, 'enough signs');
+    for (const s of city.signs) {
+      const b = city.blocks.find((k) => s.x > k.x0 && s.x < k.x1 && s.z > k.z0 && s.z < k.z1);
+      assert.ok(b, 'sign is inside a block');
+      const inner = s.x > b.x0 + cfg.sidewalk && s.x < b.x1 - cfg.sidewalk && s.z > b.z0 + cfg.sidewalk && s.z < b.z1 - cfg.sidewalk;
+      assert.ok(!inner, 'sign is on the sidewalk, not among buildings');
+      assert.equal(Math.abs(s.nx) + Math.abs(s.nz), 1, 'sign faces an axis direction');
+      if (s.type === 'limit') assert.ok([30, 50].includes(s.value));
+    }
   });
 }
 

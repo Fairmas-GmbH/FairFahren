@@ -29,6 +29,9 @@ export const DEFAULT_CITY = {
   curbHeight: 0.15,
 };
 
+/** Dashed lane markings: 3 m of paint every 9 m (shared by mesh and sensors). */
+export const DASH = { length: 3, period: 9 };
+
 const NAMES_NS = ['Friedrichstraße', 'Schönhauser Allee', 'Kastanienallee', 'Rosenthaler Straße', 'Chausseestraße', 'Brunnenstraße', 'Wilhelmstraße', 'Mehringdamm', 'Kottbusser Damm', 'Prenzlauer Allee', 'Greifswalder Straße', 'Warschauer Straße'];
 const NAMES_EW = ['Torstraße', 'Invalidenstraße', 'Oranienstraße', 'Kantstraße', 'Bernauer Straße', 'Skalitzer Straße', 'Gneisenaustraße', 'Danziger Straße', 'Leipziger Straße', 'Kochstraße', 'Wiener Straße', 'Pappelallee'];
 const NAMES_UFER = ['Reichpietschufer', 'Schiffbauerdamm', 'Märkisches Ufer', 'Fraenkelufer', 'Paul-Lincke-Ufer', 'Maybachufer'];
@@ -63,13 +66,15 @@ export function generateCity(options = {}) {
   const bounds = { x0: -xs.extent / 2, z0: -zs.extent / 2, x1: xs.extent / 2, z1: zs.extent / 2 };
 
   // 3. Street names.
+  // Side streets are Tempo-30 zones half of the time; main roads are 50.
   const ns = nameRng.shuffle(NAMES_NS), ew = nameRng.shuffle(NAMES_EW), ufer = nameRng.shuffle(NAMES_UFER);
-  const streetsNS = xs.streets.map((s, i) => ({ ...s, kind: 'street', name: ns[i % ns.length] }));
+  const limitRng = root.fork('limits');
+  const streetsNS = xs.streets.map((s, i) => ({ ...s, kind: 'street', name: ns[i % ns.length], limit: limitRng.chance(0.5) ? 30 : 50 }));
   const streetsEW = zs.streets.map((s, k) => {
     const bank = k === riverRow || k === riverRow + 1;
     const kind = k === boulevard ? 'boulevard' : bank ? 'ufer' : 'street';
     const name = k === boulevard ? 'Unter den Linden' : bank ? ufer[k - riverRow] : ew[k % ew.length];
-    return { ...s, kind, name };
+    return { ...s, kind, name, limit: kind === 'street' && limitRng.chance(0.5) ? 30 : 50 };
   });
 
   // 4. River with bridges where N-S streets cross it (some streets dead-end at the water).
@@ -172,7 +177,47 @@ export function generateCity(options = {}) {
   // 11. Spawn: right-hand lane of the boulevard, just east of the gate, heading east.
   const spawn = { x: gate.x + 30, z: bz + cfg.medianWidth / 2 + 3.5, heading: Math.PI / 2 };
 
-  return { seed: cfg.seed, config: cfg, bounds, streetsNS, streetsEW, river, blocks, medians, markings, trees, landmarks, colliders, spawn };
+  // 12. Traffic signs (own RNG stream, so they never change the rest of the city).
+  const signs = placeSigns({ streetsNS, streetsEW, rows: zs.blocks, cols: xs.blocks, blocks, boulevard }, root.fork('signs'));
+
+  return { seed: cfg.seed, config: cfg, bounds, streetsNS, streetsEW, river, blocks, medians, markings, trees, landmarks, signs, colliders, spawn };
+}
+
+/**
+ * Traffic signs on the right-hand sidewalk, 1 m behind the curb. (nx, nz) is the
+ * direction the sign face points to, i.e. towards the traffic it addresses.
+ * Speed limits after crossings, priority-road signs along the boulevard,
+ * yield signs where side streets meet the boulevard.
+ */
+function placeSigns({ streetsNS, streetsEW, rows, cols, blocks, boulevard }, rng) {
+  const signs = [];
+  const add = (type, value, x, z, nx, nz) => {
+    if (blocks.some((b) => x > b.x0 && x < b.x1 && z > b.z0 && z < b.z1)) signs.push({ type, value, x, z, nx, nz });
+  };
+  const limit = (s, ...at) => {
+    if (s.kind === 'boulevard' || rng.chance(0.35)) add('limit', s.limit, ...at);
+  };
+  for (const s of streetsNS) {
+    const h = s.width / 2 + 1;
+    rows.forEach((row, r) => {
+      limit(s, s.center - h, row.start + 5, 0, -1); // southbound: right-hand side is west
+      limit(s, s.center + h, row.end - 5, 0, 1); // northbound
+      if (r === boulevard - 1) add('yield', 0, s.center - h, row.end - 9, 0, -1);
+      if (r === boulevard) add('yield', 0, s.center + h, row.start + 9, 0, 1);
+    });
+  }
+  for (const s of streetsEW) {
+    const h = s.width / 2 + 1;
+    for (const col of cols) {
+      limit(s, col.start + 5, s.center + h, -1, 0); // eastbound: right-hand side is south
+      limit(s, col.end - 5, s.center - h, 1, 0); // westbound
+      if (s.kind === 'boulevard') {
+        add('priority', 0, col.start + 20, s.center + h, -1, 0);
+        add('priority', 0, col.end - 20, s.center - h, 1, 0);
+      }
+    }
+  }
+  return signs;
 }
 
 /** Returns a human-readable location like "Torstraße / Friedrichstraße". */

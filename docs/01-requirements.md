@@ -24,18 +24,20 @@ The project is intentionally small, readable and dependency-free, so a candidate
 |---|---|---|
 | FR-01 | The game runs in a desktop browser from a static web server. | `npm start`, open `http://localhost:8080`, the city and taxi appear within 1 s. |
 | FR-02 | The player drives a taxi with **W/A/S/D** or the **arrow keys**. | W/↑ accelerates, S/↓ brakes then reverses, A/← and D/→ steer. Works on QWERTY and QWERTZ. |
-| FR-03 | Handbrake, reset and camera switching. | Space = handbrake, R = back to spawn, C cycles chase / bonnet / overhead camera. |
+| FR-03 | Handbrake, reset, camera and sensor view. | Space = handbrake, R = back to spawn, C cycles chase / bonnet / overhead camera, V toggles the sensor view. |
 | FR-04 | The taxi looks like a German taxi. | Ivory saloon (RAL 1015 "Hellelfenbein"), yellow roof sign reading "TAXI" from front and back, turning and steering wheels. |
 | FR-05 | The world is a procedurally generated part of Berlin. | Street grid with Berlin street names; perimeter blocks of pre-war buildings (*Altbau*) with courtyards; prefab panel buildings (*Plattenbau*), more of them to the east; parks; the river Spree with bridges; a boulevard "Unter den Linden" with linden trees; a city gate on the boulevard; a TV tower on a plaza. |
 | FR-06 | The city is deterministic and seedable. | Same seed → identical city. `?seed=<int>` in the URL selects a different city. Default seed 1989. |
 | FR-07 | The taxi collides with the world. | Cannot drive through buildings/curbs, gate pillars, river (except via bridges), or past the city border. Impacts bounce and slow the car. |
 | FR-08 | HUD | Speed in km/h, current street name (or "A / B" on crossings, "… · Spreebrücke" on bridges), seed, FPS, camera mode, key help. |
+| FR-09 | Traffic signs in the city. | German signs on the right-hand sidewalk: speed limits 30/50 after crossings (per-street limit, Tempo-30 zones on side streets), priority-road signs along the boulevard, yield signs where side streets meet it. |
+| FR-10 | **Sensor view** — the environment "as the car sees it" (driver-assistance display). | HUD panel (toggle **V**), top-down and car-up: road edges/curbs, river, lane markings, detected objects (trees), 360° lidar returns, park-sensor bars with distance (green/amber/red), forward radar distance, recognised traffic signs with distance, active speed limit with speeding highlight, collision warning when time-to-collision < 1.6 s. Zooms in when slow, out when fast. |
 
 ## 4. Non-functional requirements
 
 | ID | Requirement | Measure |
 |---|---|---|
-| NFR-01 | **Size budget.** Shipped game (`index.html` + `src/**`) stays tiny. | ≤ 96 KB raw **and** ≤ 32 KB gzip, checked by `npm run size` (exit code 1 if exceeded). MVP: ~52 KB raw / ~19 KB gzip. |
+| NFR-01 | **Size budget.** Shipped game (`index.html` + `src/**`) stays tiny. | ≤ 128 KB raw **and** ≤ 40 KB gzip, checked by `npm run size` (exit code 1 if exceeded). Base game: ~69 KB raw / ~25 KB gzip. |
 | NFR-02 | **Fully procedural.** No binary or data assets. | No images, models, fonts, audio, JSON level files. Everything derived from code + seed. |
 | NFR-03 | **Zero dependencies.** | No runtime or dev npm dependencies; no CDN scripts. Node is only needed for the dev server, tests and size check. |
 | NFR-04 | **Performance.** | 60 FPS on a mid-range laptop with integrated GPU at 1080p. City = one draw call. Generation < 50 ms. |

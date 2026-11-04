@@ -34,7 +34,7 @@ npm run size
 
 ## Debugging tips
 
-- `window.fairfahren` in the browser console gives you `city`, `car`, `camera` and the `TAXI` tuning. Example: `fairfahren.car.speed = 30` or `fairfahren.TAXI.maxSpeed = 60`.
+- `window.fairfahren` in the browser console gives you `city`, `car`, `camera`, the `TAXI` tuning and the `sensorState` (active speed limit). Example: `fairfahren.car.speed = 30` or `fairfahren.TAXI.maxSpeed = 60`.
 - `?seed=42` in the URL generates a different city.
 - Shader compile errors are thrown with the GLSL log — look in the console.
 

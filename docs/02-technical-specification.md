@@ -19,6 +19,8 @@
    gfx/meshBuilder.js ──► gfx/renderer.js ◄── game/camera.js
                                │
                          gfx/shaders.js  (procedural surface detail)
+
+   city data + car ──► vehicle/sensors.js ──► game/sensorView.js  (2D canvas in the HUD)
 ```
 
 Rule of the codebase: **data in, data out.** Generation and simulation never touch the DOM or WebGL; rendering never decides game logic. `main.js` is the only place that wires everything together.
@@ -33,11 +35,14 @@ Rule of the codebase: **data in, data out.** Generation and simulation never tou
 | `src/gfx/meshBuilder.js` | CPU-side geometry: `poly`, `rect`, `box`, `frustum`, `cylinderX`, `sphere`. Auto-orients faces. | yes |
 | `src/gfx/shaders.js` | One GLSL ES 3.0 program; procedural windows, water, asphalt, soft shadow. | – |
 | `src/gfx/renderer.js` | WebGL2 context, mesh upload (VAO), per-frame uniforms, draw calls. | no |
+| `src/gfx/pixelFont.js` | 3×5 pixel font (`pixelText`, `textWidth`) for text built from boxes: taxi sign, speed-limit digits. | yes |
 | `src/world/cityGen.js` | Procedural city as plain data + `streetAt()` lookup. | yes |
 | `src/world/cityMesh.js` | Converts city data into one static mesh. | yes |
 | `src/vehicle/carPhysics.js` | `TAXI` tuning, `createCar`, `stepCar` (bicycle model). | yes |
 | `src/vehicle/collision.js` | `pushOut` (circle vs boxes/circles), `collideCar` (response). | yes |
 | `src/vehicle/taxiModel.js` | Taxi body, wheel and shadow meshes; wheel positions. | yes |
+| `src/vehicle/sensors.js` | Simulated driver-assistance sensors: `raycast`, `senseEnvironment` (lidar, park sensors, radar, lanes, objects, sign recognition). | yes |
+| `src/game/sensorView.js` | Sensor view HUD panel: draws `senseEnvironment()` output on a 2D canvas. | no |
 | `src/game/input.js` | Keyboard state, edge-triggered presses, driving input mapping. | no |
 | `src/game/camera.js` | Chase / bonnet / overhead rigs with smoothing. | yes* |
 | `src/game/hud.js` | Writes HUD text only when it changes. | no |
@@ -59,7 +64,7 @@ Steps:
 
 1. **Special rows.** Pick the river row (southern half) and the boulevard street (north of the river).
 2. **Axis layout.** Alternate streets and blocks along X and Z (`layoutAxis`), centred on the origin. The river row has a fixed width; the boulevard is wider.
-3. **Names.** Shuffle pools of real Berlin street names; boulevard = *Unter den Linden*, river banks get *-ufer/-damm* names.
+3. **Names & limits.** Shuffle pools of real Berlin street names; boulevard = *Unter den Linden*, river banks get *-ufer/-damm* names. Each side street is a Tempo-30 zone with probability 0.5; boulevard and *Ufer* streets are 50.
 4. **River & bridges.** Each N–S street crosses the Spree with probability 0.6; two streets always do.
 5. **Landmarks.** City gate mid-block on the boulevard in column 1 (six pillar pairs, five drivable passages). TV tower on a plaza block east of centre.
 6. **Blocks.** Kind per block: plaza (fixed), park (*Tiergarten* next to the gate, else 10 %), *Plattenbau* (18 % rising to 53 % in the east), else *Altbau*.
@@ -71,18 +76,25 @@ Steps:
 9. **Forest** ring around the city (260 attempts).
 10. **Colliders** (`{type:'box'|'circle', …, tag}`): every block (curb), medians, gate pillar walls, river segments between bridges, four border walls.
 11. **Spawn**: right-hand lane of the boulevard, 30 m east of the gate, heading east.
+12. **Traffic signs** (`placeSigns`, own fork `'signs'`), on the right-hand sidewalk 1 m behind the curb, facing the traffic they address. Kept only if the spot lies on a block (so none on bridges or river banks).
+    - Speed limit 5 m after each crossing, per direction: always on the boulevard, else with probability 0.35.
+    - Priority road (*Vorfahrtstraße*) 20 m after each crossing along the boulevard.
+    - Yield (*Vorfahrt gewähren*) 9 m before side streets meet the boulevard.
 
 Output shape (abridged):
 
 ```js
 { seed, config, bounds:{x0,z0,x1,z1},
-  streetsNS:[{center,width,kind,name}], streetsEW:[…],
+  streetsNS:[{center,width,kind,name,limit}], streetsEW:[…],
   river:{name,z0,z1,bridges:[{street,x0,x1}]},
   blocks:[{ix,iz,x0,z0,x1,z1,kind,ground,buildings:[{kind,x0,z0,x1,z1,y0,height,color,roof,roofColor,roofHeight,ridgeAlongX}]}],
   medians, markings:[{x0,z0,x1,z1}], trees:[{x,y,z,s}],
   landmarks:[{kind:'gate',x,z,width,pillars}, {kind:'tvTower',x,y,z}],
+  signs:[{type:'limit'|'priority'|'yield', value, x, z, nx, nz}],
   colliders:[…], spawn:{x,z,heading} }
 ```
+
+Signs are rendered as a pole plus layered plates (border, face) built with `poly()`; the limit digits are boxes from `pixelFont.js`. Because every sign faces an axis direction, the digit boxes stay axis-aligned.
 
 ## 5. Rendering
 
@@ -92,7 +104,7 @@ Output shape (abridged):
 - **Materials** (`MAT`): `PLAIN`, `ALTBAU`, `PLATTE` (window grids from world position, shop fronts on the ground floor, panel joints), `WATER` (animated normal + specular), `ASPHALT` (grain), `PAINT` (specular), `SHADOW` (radial alpha from uv in the color slot).
 - **Lighting**: Lambert sun + hemispheric sky/ground ambient + Blinn-Phong for glossy materials + fake ambient occlusion at wall bases + exp² distance fog that hides the world edge.
 - **Draw calls per frame**: city (1), taxi body (1), wheels (4), shadow (1, blended).
-- Typical city (seed 1989): ~450 buildings, ~520 trees → ~87 k vertices / ~40 k triangles (≈ 3.5 MB GPU memory). Data generation ≈ 3 ms, mesh building ≈ 20 ms (Node, laptop).
+- Typical city (seed 1989): ~450 buildings, ~520 trees, ~100 traffic signs → ~126 k vertices (≈ 5 MB GPU memory; the sign digits alone are ~40 k). Data generation ≈ 3 ms, mesh building ≈ 20–30 ms (Node, laptop).
 
 ## 6. Vehicle physics (`stepCar`)
 
@@ -110,12 +122,34 @@ Kinematic bicycle model, fixed step 1/120 s:
 - Response: reflect the velocity component along the contact normal with restitution 0.25, project back onto the car axis. Returns the impact speed (unused in the MVP — hook for damage/sound).
 - Broad phase: none (≈ 75 colliders, cheap bounding-box reject first). A spatial grid is a natural extension.
 
-## 8. Size budget enforcement
+## 8. Sensors and sensor view
 
-`tools/size-check.mjs` concatenates `index.html` and every file in `src/`, measures raw and gzip-9 size, prints a per-file table and fails above **96 KB raw / 32 KB gzip**. `npm run check` = tests + size. Tests, docs and tools are not shipped and do not count.
+`senseEnvironment(car, city, state)` simulates what a driver-assistance system would perceive. It is pure and returns everything in the **car frame**: `[lx, lz]` = metres to the right, metres ahead.
 
-## 9. Testing
+| Sensor | Model | Output |
+|---|---|---|
+| Lidar | 90 rays over 360° from the car centre, range 60 m, against colliders | hit points |
+| Park sensors | 12 ultrasonic beams (4 front, 4 rear, 2 per side) from body mount points, range 4.5 m | `{x, z, a, d, hit}` per sensor |
+| Radar | 3 parallel beams across the car width from the front bumper, range 80 m | `front.d`, time to collision `front.ttc = d / v` |
+| Lane camera | dashes of `city.markings` within 60 m (same `DASH` pattern as the mesh) | line segments |
+| Road edges | box colliders within 60 m (curbs, medians, river, gate) | polygons with `tag` |
+| Objects | trees within 60 m | points |
+| Sign camera | signs ≤ 45 m ahead, inside a ≈ 35° half-angle cone, facing the car (dot of sign normal and car forward ≤ −0.7) | `{type, value, lx, lz, d}`, nearest first |
 
-`node --test` (built in, no dependencies). Covered: RNG determinism and ranges; city determinism, world invariants for several seeds (buildings within blocks, no blocks in the river, ≥ 2 bridges, exactly one of each landmark, collision-free spawn on *Unter den Linden*); physics (acceleration, top speed, braking/reversing, coasting to a stop, steering direction, wall collision, bounce).
+`state.speedLimit` remembers the last limit sign recognised closer than 30 m, so the limit stays active after the sign is passed. `raycast` uses the slab method for boxes and the quadratic formula for circles. Cost: ≈ 0.15 ms per frame (Node, laptop). Colliders are pre-filtered by distance, with no spatial index.
 
-Rendering is verified manually; `window.fairfahren` exposes `{ city, car, camera, TAXI }` for console inspection.
+`SensorView` draws the result on a 2D canvas, car-up. The scale goes from 24 m visible height at standstill to ≈ 80 m at 72 km/h+, with exponential smoothing. Park-sensor bars are coloured < 0.6 m red, < 1.2 m amber, else green. A collision warning banner shows when `ttc < 1.6 s`. The header shows up to three recognised signs, the active limit, and the speed (red when > limit + 3 km/h). **V** toggles the panel; sensors keep running while it is hidden.
+
+## 9. Size budget enforcement
+
+`tools/size-check.mjs` concatenates `index.html` and every file in `src/`, measures raw and gzip-9 size, prints a per-file table and fails above **128 KB raw / 40 KB gzip**. `npm run check` = tests + size. Tests, docs and tools are not shipped and do not count.
+
+## 10. Testing
+
+`node --test` (built in, no dependencies). Covered:
+- **RNG:** determinism and ranges.
+- **City:** determinism, plus world invariants for several seeds: buildings within blocks, no blocks in the river, ≥ 2 bridges, exactly one of each landmark, collision-free spawn on *Unter den Linden*, signs on sidewalks and axis-aligned.
+- **Physics:** acceleration, top speed, braking/reversing, coasting to a stop, steering direction, wall collision, bounce.
+- **Sensors:** raycast against boxes and circles, radar distance and time to collision, park sensors front vs rear, sign recognition (ahead / behind / facing away / outside the cone), speed-limit memory, car-frame orientation.
+
+Rendering is verified manually; `window.fairfahren` exposes `{ city, car, camera, TAXI, sensorState }` for console inspection.
