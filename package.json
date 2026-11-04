@@ -1,0 +1,16 @@
+{
+  "name": "fairfahren",
+  "version": "0.1.0",
+  "description": "Procedural Berlin taxi driving MVP in a few kilobytes — developer interview project.",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node tools/serve.mjs",
+    "test": "node --test \"test/**/*.test.mjs\"",
+    "size": "node tools/size-check.mjs",
+    "check": "npm test && npm run size"
+  }
+}

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FairFahren — Berlin Taxi</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #bfcad6; font: 14px/1.4 system-ui, sans-serif; color: #fff; }
+  canvas { display: block; width: 100%; height: 100%; }
+  .panel { position: fixed; padding: 10px 14px; background: rgba(20, 24, 30, .62); border-radius: 8px; text-shadow: 0 1px 2px #000; }
+  #dash { left: 16px; bottom: 16px; min-width: 180px; }
+  #dash b { font-size: 40px; font-variant-numeric: tabular-nums; }
+  #dash .street { color: #f5c400; font-weight: 600; min-height: 1.4em; }
+  #help { right: 16px; top: 16px; font-size: 12px; opacity: .85; }
+  #help kbd { background: rgba(255,255,255,.15); border-radius: 3px; padding: 0 4px; }
+  #meta { left: 16px; top: 16px; font-size: 12px; opacity: .85; }
+  #error:not(:empty) { position: fixed; inset: 0; display: grid; place-items: center; background: #222; font-size: 18px; }
+</style>
+</head>
+<body>
+<canvas></canvas>
+<div id="dash" class="panel">
+  <div class="street" data-hud="street"></div>
+  <b data-hud="speed">0</b> km/h
+</div>
+<div id="meta" class="panel"><strong>FairFahren</strong> · <span data-hud="seed"></span> · <span data-hud="fps"></span></div>
+<div id="help" class="panel">
+  <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / arrows drive · <kbd>Space</kbd> handbrake<br>
+  <kbd>C</kbd> camera · <kbd>R</kbd> reset · <code>?seed=42</code> new city
+</div>
+<div id="error"></div>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
