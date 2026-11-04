@@ -58,10 +58,11 @@ in a dedicated folder inside `docs/` (e.g. `docs/plans/`), never just in chat.
 Plans go there automatically; anything else (notes, lists, stray docs) goes
 there only after asking the user first.
 
-- **Red/green TDD is mandatory.** For every new behavior: first write a failing
-  test (red), watch it fail for the expected reason, then write the smallest code
-  that makes it pass (green), then clean up. Never write implementation before
-  its failing test; never ship with `npm run check` failing.
+- **Speed over ceremony.** Ship the smallest working change fast — no red/green
+  TDD, no test-first gates. Run `npm run check` before considering work done;
+  never ship with it failing.
+- **Deploy review agents if needed.** For large, risky, or constraint-touching
+  changes, spin up review agent(s) to check the diff before calling the work done.
 - Tests run in Node with `node:test` — keep game logic (world gen, physics, RNG)
   pure and browser-free so it stays testable.
 - Match the existing style: ES modules, plain functions over classes, small
