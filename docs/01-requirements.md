@@ -47,7 +47,7 @@ The project is intentionally small, readable and dependency-free, so a candidate
 ## 5. Out of scope for the MVP
 
 These are deliberately left out and are good candidate tasks (see [04-candidate-brief.md](04-candidate-brief.md)):
-passengers / fares / game loop, traffic & pedestrians, traffic lights, minimap, sound, day/night, shadows, mobile/touch/gamepad controls, infinite or streamed city, damage, save games, multiplayer.
+passengers / fares / game loop, traffic & pedestrians, traffic lights, minimap, sound, day/night, shadows, mobile/touch/gamepad controls, infinite or streamed city, damage, save games, multiplayer races over the intranet (task G).
 
 ## 6. Constraints and assumptions
 
