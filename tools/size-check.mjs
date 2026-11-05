@@ -5,7 +5,7 @@ import { join, relative, resolve } from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 
-// The base game uses ~116 KB raw / ~41 KB gzip. The headroom is for candidates' features.
+// The base game uses ~123 KB raw / ~44 KB gzip. The headroom is for candidates' features.
 export const BUDGET = { raw: 160 * 1024, gzip: 52 * 1024 };
 
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));

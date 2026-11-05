@@ -27,6 +27,13 @@ export const MAT = {
 /** 0xRRGGBB -> [r, g, b] in 0..1 */
 export const rgb = (hex) => [((hex >> 16) & 255) / 255, ((hex >> 8) & 255) / 255, (hex & 255) / 255];
 
+/** Local→world mapper at (ox, oy, oz) turned by h, like rotationY: local +Z → (sin h, 0, cos h), +X → (cos h, 0, −sin h). */
+export const frame = (ox, oy, oz, h) => {
+  const c = Math.cos(h), s = Math.sin(h);
+  return (x, y, z) => [ox + x * c + z * s, oy + y, oz - x * s + z * c];
+};
+const BOX_FACES = [[0, 1, 2, 3], [4, 5, 6, 7], [0, 4, 7, 3], [1, 5, 6, 2], [3, 2, 6, 7], [0, 1, 5, 4]];
+
 export class MeshBuilder {
   constructor() {
     this.vertices = [];
@@ -79,6 +86,22 @@ export class MeshBuilder {
     this.poly([[x1, y0, z0], [x1, y0, z1], [x1, y1, z1], [x1, y1, z0]], color, mat, c);
     this.poly([[x0, y1, z0], [x1, y1, z0], [x1, y1, z1], [x0, y1, z1]], opts.top ?? color, opts.topMat ?? mat, c);
     if (opts.bottom) this.poly([[x0, y0, z0], [x1, y0, z0], [x1, y0, z1], [x0, y0, z1]], color, mat, c);
+  }
+
+  /** Box given in a local frame T (see frame()), so it can be turned to any heading. */
+  obox(T, x0, y0, z0, x1, y1, z1, color, mat = MAT.PLAIN) {
+    const P = [[x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0], [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1]].map((p) => T(...p));
+    const inside = T((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2);
+    for (const f of BOX_FACES) this.poly(f.map((i) => P[i]), color, mat, inside);
+  }
+
+  /** Convex 2D outline [[u, v], …] given thickness from w0 to w1, in local frame T (u → x, v → y, w → z). */
+  slab(T, pts, w0, w1, color, mat = MAT.PLAIN) {
+    const n = pts.length, at = (w) => pts.map(([u, v]) => T(u, v, w)), a = at(w0), b = at(w1);
+    const inside = T(pts.reduce((s, p) => s + p[0], 0) / n, pts.reduce((s, p) => s + p[1], 0) / n, (w0 + w1) / 2);
+    this.poly(a, color, mat, inside);
+    this.poly(b, color, mat, inside);
+    for (let i = 0; i < n; i++) this.poly([a[i], a[(i + 1) % n], b[(i + 1) % n], b[i]], color, mat, inside);
   }
 
   /** Vertical cone stump around (cx, cz). r1 === r0 gives a cylinder, r1 === 0 a cone. */

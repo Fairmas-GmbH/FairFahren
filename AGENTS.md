@@ -7,7 +7,7 @@ Rules for AI coding agents working in this repo.
 A procedural 3D driving game (steer a German taxi through a generated slice of
 Berlin) built as a base project for developer interviews. Candidates extend it.
 
-- **~116 KB of plain JavaScript. No assets, no dependencies, no build step.**
+- **~123 KB of plain JavaScript. No assets, no dependencies, no build step.**
 - Everything is generated from one seed (`?seed=42` gives the same city to everyone).
 - Requires Node 22+ and a browser with WebGL2.
 

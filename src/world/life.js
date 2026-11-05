@@ -4,7 +4,7 @@
  * Positions are closed-form functions of time t; only pigeons keep state
  * (how scared they are). lifeMesh() rebuilds one small mesh per frame.
  */
-import { MeshBuilder, MAT, rgb } from '../gfx/meshBuilder.js';
+import { MeshBuilder, MAT, rgb, frame } from '../gfx/meshBuilder.js';
 import { Rng, hash2 } from '../core/rng.js';
 
 const SKIN = [0xf1c27d, 0xc68642, 0x8d5524, 0xe0ac69].map(rgb);
@@ -50,7 +50,26 @@ export function createLife(city) {
     cx, cz,
     // Two flying time-travel cars, each on its own schedule (seconds); not on the boulevard (gate).
     jumps: [23, 31], seed: city.seed, streets: city.streetsEW.filter((s) => s.kind !== 'boulevard').map((s) => s.center), x0: B.x0 + 40, x1: B.x1 - 130,
+    // Fair-weather clouds drifting east between the rooftops; a cloud's bottom sits at its y (≥ 12 m).
+    clouds: Array.from({ length: 40 }, () => ({ s: r(0, 3000), z: r(B.z0, B.z1), y: r(12, 45), v: r(2, 4), shape: rng.int(0, 3) })),
+    sky: { x0: B.x0 - 300, w: B.x1 - B.x0 + 600 },
   };
+}
+
+/** A cloud's position at time t (wraps around the city). */
+export const cloudPos = (life, c, t) => [life.sky.x0 + mod(c.s + c.v * t, life.sky.w), c.y, c.z];
+
+/** Four puffy cloud shapes per seed: flattened white spheres, all resting on local y = 0. */
+export function cloudShapes(seed) {
+  const rng = new Rng(seed).fork('clouds'), white = rgb(0xffffff);
+  return Array.from({ length: 4 }, () => {
+    const m = new MeshBuilder(), R = rng.range(6, 10);
+    for (let i = rng.int(4, 7); i > 0; i--) {
+      const r = R * rng.range(0.5, 0.95);
+      m.sphere(rng.range(-1.4, 1.4) * R, r * 0.65 + rng.range(0, R * 0.35), rng.range(-0.6, 0.6) * R, r, 9, 5, white, MAT.PLAIN, 0.65);
+    }
+    return m;
+  });
 }
 
 /** Position on a rectangular loop at distance s + v·t → [x, z, dirX, dirZ]. */
@@ -67,16 +86,7 @@ export function walkerPos({ loop: q, s, v }, t) {
 export function lifeMesh(life, t, dt, car, scare = true) {
   const m = new MeshBuilder();
   const near = (x, z) => (x - car.x) ** 2 + (z - car.z) ** 2 < NEAR * NEAR;
-  // Entity frame like rotationY: local +Z forward, +X left.
-  const frame = (ox, oy, oz, h) => {
-    const c = Math.cos(h), s = Math.sin(h);
-    return (x, y, z) => [ox + x * c + z * s, oy + y, oz - x * s + z * c];
-  };
-  const box = (T, x0, y0, z0, x1, y1, z1, col, mat = MAT.PLAIN) => {
-    const P = [[x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0], [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1]].map((p) => T(...p));
-    const inside = T((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2);
-    for (const f of [[0, 1, 2, 3], [4, 5, 6, 7], [0, 4, 7, 3], [1, 5, 6, 2], [3, 2, 6, 7], [0, 1, 5, 4]]) m.poly(f.map((i) => P[i]), col, mat, inside);
-  };
+  const box = (...a) => m.obox(...a);
   // Flapping wings, both faces, so they show from above and below.
   const wings = (T, span, flap, col) => {
     for (const s of [-1, 1]) for (const up of [-1, 1]) {

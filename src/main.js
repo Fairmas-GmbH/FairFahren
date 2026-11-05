@@ -24,7 +24,8 @@ import { Hud } from './game/hud.js';
 import { SensorView } from './game/sensorView.js';
 import { createSensorState, senseEnvironment } from './vehicle/sensors.js';
 import { compose, translation, rotationX, rotationY, perspective, lookAt } from './core/math.js';
-import { createLife, lifeMesh } from './world/life.js';
+import { createLife, lifeMesh, cloudShapes, cloudPos } from './world/life.js';
+import { buildLogo, logoAnchor } from './world/hq.js';
 import { createNetClient } from './net/client.js';
 import { encode } from '../server/protocol.js';
 import { createInterp } from './net/remoteCar.js';
@@ -69,12 +70,22 @@ window.fairfahren = { city, car, camera, TAXI, sensorState, ENV };
 
 let last = performance.now(), accumulator = 0, fps = 60;
 let life = createLife(city), lifeGpu = null;
+const uploadClouds = () => cloudShapes(city.seed).map((b) => renderer.upload(b));
+let cloudGpu = uploadClouds();
+const logoGpu = renderer.upload(buildLogo());
 
-/** Street life: rebuilt every frame into one dynamic mesh, one draw call. scare: is the taxi visible? */
+/**
+ * Everything that moves without physics. Street life is rebuilt every frame
+ * into one dynamic mesh; clouds and the Fairmas rooftop logo are static
+ * meshes drawn with a moving/turning model matrix. scare: is the taxi visible?
+ */
 function drawLife(dt, scare) {
   window.fairfahren.life = life;
   lifeGpu = renderer.upload(lifeMesh(life, ENV.time, dt, car, scare), lifeGpu);
   renderer.draw(lifeGpu);
+  for (const c of life.clouds) renderer.draw(cloudGpu[c.shape], translation(...cloudPos(life, c, ENV.time)));
+  const hq = city.landmarks.find((l) => l.kind === 'hq');
+  if (hq) renderer.draw(logoGpu, compose(translation(...logoAnchor(hq)), rotationY(ENV.time * 0.3)));
 }
 
 // ---------------------------------------------------------------------------
@@ -161,6 +172,7 @@ function rebuildWorld(seed) {
   window.fairfahren.city = city;
   cityMesh = renderer.upload(buildCityMesh(city));
   life = createLife(city);
+  cloudGpu = uploadClouds();
   track = null; trackFor = '';
   hud.set('seed', `Seed ${city.seed}`);
 }

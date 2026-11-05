@@ -4,6 +4,7 @@
 import { MeshBuilder, MAT, rgb } from '../gfx/meshBuilder.js';
 import { pixelText, textWidth } from '../gfx/pixelFont.js';
 import { DASH } from './cityGen.js';
+import { addHq } from './hq.js';
 
 const C = {
   asphalt: rgb(0x4a4c50), grass: rgb(0x6e8f4e), sidewalk: rgb(0xa29f97), curb: rgb(0x8c8a85),
@@ -134,6 +135,7 @@ function addTree(m, t) {
 }
 
 const LANDMARKS = {
+  hq: addHq,
   // Six pillar pairs joined by walls, entablature, attic and a copper quadriga on top.
   gate(m, g) {
     const half = g.width / 2 + 1;

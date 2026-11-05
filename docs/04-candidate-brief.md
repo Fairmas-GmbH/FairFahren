@@ -4,7 +4,7 @@
 
 ## Welcome to FairFahren 🚕
 
-You have a tiny 3D driving game: a Berlin taxi in a procedurally generated city. The whole game is about 116 KB of plain JavaScript — **no assets, no libraries, no build step**. Every building, tree and street comes from one seed number.
+You have a tiny 3D driving game: a Berlin taxi in a procedurally generated city. The whole game is about 123 KB of plain JavaScript — **no assets, no libraries, no build step**. Every building, tree and street comes from one seed number.
 
 Your job is to **extend it**.
 

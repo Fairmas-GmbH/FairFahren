@@ -1,7 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { generateCity } from '../src/world/cityGen.js';
-import { createLife, lifeMesh, walkerPos } from '../src/world/life.js';
+import { createLife, lifeMesh, walkerPos, cloudPos, cloudShapes } from '../src/world/life.js';
+import { buildCityMesh } from '../src/world/cityMesh.js';
+import { buildLogo, logoAnchor, HQ } from '../src/world/hq.js';
 
 const city = generateCity({ seed: 1989 });
 const far = { x: 1e6, z: 1e6 }; // a taxi far away: nothing near it gets scared
@@ -38,6 +40,39 @@ test('nothing flies through the TV tower or the gate', () => {
     assert.ok(life.ufos.slice(1).every((u) => u.y > 300), 'roaming UFOs fly above the antenna');
     assert.ok(!life.streets.includes(c.streetsEW.find((s) => s.kind === 'boulevard').center), 'time cars avoid the gate');
   }
+});
+
+test('clouds hang low but at least 10 m up, drift, and are seeded', () => {
+  const life = createLife(city), shapes = cloudShapes(city.seed);
+  assert.equal(life.clouds.length, 40);
+  for (const s of shapes) {
+    let minY = Infinity;
+    for (let i = 1; i < s.vertices.length; i += 10) minY = Math.min(minY, s.vertices[i]);
+    assert.ok(minY > -1e-6, 'every shape rests on local y = 0');
+  }
+  for (const c of life.clouds) {
+    assert.ok(c.y >= 10 && c.y <= 50, `cloud at ${c.y} m`);
+    assert.notDeepEqual(cloudPos(life, c, 0), cloudPos(life, c, 10), 'clouds move');
+  }
+  assert.deepEqual(cloudShapes(city.seed), cloudShapes(city.seed));
+});
+
+test('the Fairmas HQ stands next to the TV tower, inside its block, taller than everything', () => {
+  for (const seed of [1, 42, 1989]) {
+    const c = generateCity({ seed });
+    const hq = c.landmarks.filter((l) => l.kind === 'hq'), tv = c.landmarks.find((l) => l.kind === 'tvTower');
+    assert.equal(hq.length, 1, 'exactly one HQ');
+    const b = c.blocks.find((k) => k.kind === 'hq');
+    const plaza = c.blocks.find((k) => k.kind === 'plaza');
+    assert.equal(b.iz, plaza.iz);
+    assert.equal(Math.abs(b.ix - plaza.ix), 1, 'neighbour of the TV-tower plaza');
+    const podium = 27.4; // half width incl. neon line (hq.js)
+    assert.ok(hq[0].x - podium > b.x0 + c.config.sidewalk && hq[0].x + podium < b.x1 - c.config.sidewalk, 'podium inside the block (x)');
+    assert.ok(hq[0].z - podium > b.z0 + c.config.sidewalk && hq[0].z + podium < b.z1 - c.config.sidewalk, 'podium inside the block (z)');
+    assert.ok(logoAnchor(hq[0])[1] - HQ.logoR > 300 && tv.y + 290 < logoAnchor(hq[0])[1] + HQ.logoR, 'outranks the TV tower');
+    assert.ok(buildCityMesh(c).vertexCount > 0);
+  }
+  assert.ok(buildLogo().vertexCount > 0);
 });
 
 test('a hidden taxi does not scare pigeons', () => {

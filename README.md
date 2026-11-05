@@ -1,7 +1,7 @@
 # FairFahren 🚕
 
 A tiny procedural 3D driving game: steer a German taxi through a generated slice of Berlin.
-**~116 KB of plain JavaScript (~41 KB gzipped). No assets. No dependencies. No build step.** Every street, building, tree and landmark comes from one seed.
+**~123 KB of plain JavaScript (~44 KB gzipped). No assets. No dependencies. No build step.** Every street, building, tree and landmark comes from one seed.
 
 Built as the base project for developer interviews: candidates extend it (see [the candidate brief](docs/04-candidate-brief.md)).
 
@@ -27,7 +27,7 @@ Open <http://localhost:8080>. Add `?seed=42` for a different city.
 
 ## What's in the city
 
-Berlin street grid with real street names · *Altbau* perimeter blocks with courtyards, shop fronts and vacant lots · *Plattenbau* slabs (more in the east) · parks · the Spree with bridges and *Ufer* streets · *Unter den Linden* with a linden-tree median · a city gate you can drive through · a TV tower on a plaza · German traffic signs (speed limits 30/50, priority road, yield).
+Berlin street grid with real street names · *Altbau* perimeter blocks with courtyards, shop fronts and vacant lots · *Plattenbau* slabs (more in the east) · parks · the Spree with bridges and *Ufer* streets · *Unter den Linden* with a linden-tree median · a city gate you can drive through · a TV tower on a plaza · German traffic signs (speed limits 30/50, priority road, yield) · the twisting Fairmas headquarters next to the TV tower, with neon signs and a giant rotating logo on the roof · street life (people, pigeons, birds, swans, swaying trees, low clouds, UFOs, planes, time-travel cars).
 
 ## Sensor view
 

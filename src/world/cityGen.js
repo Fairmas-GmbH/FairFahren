@@ -98,6 +98,7 @@ export function generateCity(options = {}) {
   };
   const landmarks = [gate];
   const plaza = { ix: Math.round((cfg.blocksX - 1) * 0.65), iz: boulevard };
+  const hqIx = plaza.ix + 1 < cfg.blocksX ? plaza.ix + 1 : plaza.ix - 1; // Fairmas HQ right next to the TV tower
 
   // 6. Blocks. Each block gets its own RNG stream so blocks are independent of each other.
   const trees = [];
@@ -108,6 +109,7 @@ export function generateCity(options = {}) {
       const rng = root.fork(`block:${ix},${iz}`);
       const b = { ix, iz, x0: xs.blocks[ix].start, x1: xs.blocks[ix].end, z0: zs.blocks[iz].start, z1: zs.blocks[iz].end, buildings: [] };
       if (ix === plaza.ix && iz === plaza.iz) b.kind = 'plaza';
+      else if (ix === hqIx && iz === plaza.iz) b.kind = 'hq';
       else if (ix === 0 && (iz === boulevard - 1 || iz === boulevard)) b.kind = 'park'; // "Tiergarten" next to the gate
       else {
         const east = ix / (cfg.blocksX - 1), r = rng.next();
@@ -312,6 +314,12 @@ const FILL = {
   },
 
   // Paved square with the TV tower in the middle.
+  // Fairmas headquarters on a paved square (geometry: hq.js).
+  hq(b, rng, cfg, trees, landmarks) {
+    b.ground = 'plaza';
+    landmarks.push({ kind: 'hq', x: (b.x0 + b.x1) / 2, z: (b.z0 + b.z1) / 2, y: cfg.curbHeight });
+  },
+
   plaza(b, rng, cfg, trees, landmarks) {
     b.ground = 'plaza';
     const cx = (b.x0 + b.x1) / 2, cz = (b.z0 + b.z1) / 2;
