@@ -1,0 +1,175 @@
+{
+ "project": "C:/Users/Admin/Documents/racing-project",
+ "exported_at": "2026-11-04T22:08:10",
+ "session_count": 25,
+ "sessions": [
+  {
+   "file": "20261104_1520_local-0e3b812a16d_project-overview-commands-and-usage.json",
+   "title": "Project overview, commands, and usage",
+   "session_id": "local-0e3b812a16de8155c04536e2443367f0f5074fe357e1d3e08c231ea10582fc0d",
+   "started": "2026-11-04T15:20:00",
+   "messages": 28
+  },
+  {
+   "file": "20261104_1630_local-3aad6c58281_test-g-multiplayer-race-locally.json",
+   "title": "Test G multiplayer race locally",
+   "session_id": "local-3aad6c58281351d7308188f6bad56bbbca7d219bf95c4b67b03d36d7b58d9e7d",
+   "started": "2026-11-04T16:30:02",
+   "messages": 9
+  },
+  {
+   "file": "20261104_1634_local-bf8b3770f6d_create-agents-md-with-tdd-guidelines.json",
+   "title": "Create Agents.md with TDD guidelines",
+   "session_id": "local-bf8b3770f6d966d2464c22a413c0032561e09972f67f08294bb787da57ce0d50",
+   "started": "2026-11-04T16:34:02",
+   "messages": 32
+  },
+  {
+   "file": "20261104_1640_local-6fa8864cdc1_brainstorm-multiplayer-race-intranet-plan.json",
+   "title": "Brainstorm multiplayer race intranet plan",
+   "session_id": "local-6fa8864cdc113bd868ab8ce71bb2e269766a0032db82e06d9364938f0e760bf9",
+   "started": "2026-11-04T16:40:25",
+   "messages": 53
+  },
+  {
+   "file": "20261104_1708_local-cbcd0968a65_implement-g-multiplayer-phase-1.json",
+   "title": "Implement g-multiplayer Phase 1",
+   "session_id": "local-cbcd0968a6553cb2ea661b1f84a60e40b0486654ae33e5f2e0215c18127a8ed5",
+   "started": "2026-11-04T17:08:27",
+   "messages": 98
+  },
+  {
+   "file": "20261104_1720_local-d2b6ef36a98_commit-new-docs-files-only.json",
+   "title": "Commit new docs files only",
+   "session_id": "local-d2b6ef36a98f159f29666ec753db2db9f382963744d771f575f27f8e172ccc4a",
+   "started": "2026-11-04T17:20:37",
+   "messages": 6
+  },
+  {
+   "file": "20261104_1723_local-fd36634c5d8_rewrite-agents-md-prioritizing-speed-over-tdd.json",
+   "title": "Rewrite agents.md prioritizing speed over TDD",
+   "session_id": "local-fd36634c5d8b4b94fe4e5b7736605623de59c8a43bd0d47228669a5410a5777a",
+   "started": "2026-11-04T17:23:14",
+   "messages": 13
+  },
+  {
+   "file": "20261104_1733_local-481b68ec881_remove-phase-1-tests-and-run-npm-check.json",
+   "title": "Remove phase 1 tests and run npm check",
+   "session_id": "local-481b68ec881c80c6bd0fff5da2633b605422784eb6329fe51638aba095f5ec64",
+   "started": "2026-11-04T17:33:13",
+   "messages": 14
+  },
+  {
+   "file": "20261104_1733_20261104_173341_e_subagent-review-the-fairfahren-repo-s-multiplayer-phase.json",
+   "title": "Subagent: Review the FairFahren repo's multiplayer phase…",
+   "session_id": "20261104_173341_e14907",
+   "started": "2026-11-04T17:33:41",
+   "messages": 47
+  },
+  {
+   "file": "20261104_1737_local-3f0d7ec815c_implement-phase-2-multiplayer-and-review.json",
+   "title": "Implement Phase 2 multiplayer and review",
+   "session_id": "local-3f0d7ec815c368198afa7de77596cb9775d810b79a588b279e6dce05ba277479",
+   "started": "2026-11-04T17:37:19",
+   "messages": 354
+  },
+  {
+   "file": "20261104_1814_20261104_181430_6_subagent-pre-commit-style-review-of-phase-2-of-the.json",
+   "title": "Subagent: Pre-commit-style review of Phase 2 of the…",
+   "session_id": "20261104_181430_651a24",
+   "started": "2026-11-04T18:14:30",
+   "messages": 116
+  },
+  {
+   "file": "20261104_1824_local-a691d5ad19f_implement-phases-3-4-with-subagents.json",
+   "title": "Implement phases 3-4 with subagents",
+   "session_id": "local-a691d5ad19fbc9e6e5edfd1b0b06a9170596397264f1b64d200be42f9ca1654c",
+   "started": "2026-11-04T18:24:37",
+   "messages": 141
+  },
+  {
+   "file": "20261104_1828_20261104_182835_3_subagent-implement-phase-3-client-online-core-of-the.json",
+   "title": "Subagent: Implement phase 3 'client online core' of the…",
+   "session_id": "20261104_182835_305b81",
+   "started": "2026-11-04T18:28:35",
+   "messages": 67
+  },
+  {
+   "file": "20261104_1828_20261104_182835_6_subagent-implement-phase-4-server-side-of-the-fairfahren.json",
+   "title": "Subagent: Implement phase 4 SERVER side of the FairFahren…",
+   "session_id": "20261104_182835_6579d3",
+   "started": "2026-11-04T18:28:35",
+   "messages": 79
+  },
+  {
+   "file": "20261104_1828_20261104_182835_9_subagent-implement-phase-4-client-local-pure-race-math.json",
+   "title": "Subagent: Implement phase 4 CLIENT-LOCAL pure race math…",
+   "session_id": "20261104_182835_9825db",
+   "started": "2026-11-04T18:28:35",
+   "messages": 42
+  },
+  {
+   "file": "20261104_1840_20261104_184023_7_subagent-wire-the-fairfahren-multiplayer-feature-into.json",
+   "title": "Subagent: Wire the FairFahren multiplayer feature into…",
+   "session_id": "20261104_184023_71fa1e",
+   "started": "2026-11-04T18:40:23",
+   "messages": 186
+  },
+  {
+   "file": "20261104_1840_20261104_184023_5_subagent-write-and-pass-test-raceloop-test-mjs-a-full.json",
+   "title": "Subagent: Write and pass test/raceLoop.test.mjs: a full…",
+   "session_id": "20261104_184023_5ce652",
+   "started": "2026-11-04T18:40:23",
+   "messages": 71
+  },
+  {
+   "file": "20261104_1851_local-c583f061651_fix-partial-view-overwrite-error-on-main-js.json",
+   "title": "Fix partial view overwrite error on main.js",
+   "session_id": "local-c583f0616511cd4a5966f0e53d0faa8898533ff2d5bbfdc602039bec363e0df7",
+   "started": "2026-11-04T18:51:52",
+   "messages": 22
+  },
+  {
+   "file": "20261104_1906_20261104_190613_6_subagent-act-as-the-pre-ship-reviewer-of-the-complete.json",
+   "title": "Subagent: Act as the pre-ship reviewer of the complete…",
+   "session_id": "20261104_190613_6cb191",
+   "started": "2026-11-04T19:06:13",
+   "messages": 68
+  },
+  {
+   "file": "20261104_1909_local-f191133b92f_test-multiplayer-locally-on-one-machine.json",
+   "title": "Test multiplayer locally on one machine",
+   "session_id": "local-f191133b92f60e8c6ee4759bd0cd324cc28c6c3207a92024fa93071d9dc00f37",
+   "started": "2026-11-04T19:09:31",
+   "messages": 30
+  },
+  {
+   "file": "20261104_1917_local-eb201a1b7ce_find-my-ip-address.json",
+   "title": "Find my IP address",
+   "session_id": "local-eb201a1b7ceeeb84cd2a34818313516a82c204475b59ff106701904d4ae6a978",
+   "started": "2026-11-04T19:17:09",
+   "messages": 6
+  },
+  {
+   "file": "20261104_1929_local-2f6a4405feb_debug-git-push-to-origin-main.json",
+   "title": "Debug git push to origin main",
+   "session_id": "local-2f6a4405feb0dcb3e27493b42203128a17a152487db336cac8afb24e584bf651",
+   "started": "2026-11-04T19:29:21",
+   "messages": 26
+  },
+  {
+   "file": "20261104_2147_local-d8b81ec266b_debug-intranet-connectivity-between-two-machines.json",
+   "title": "Debug intranet connectivity between two machines",
+   "session_id": "local-d8b81ec266b9b0f4dd57858f393b036fd4292dbe9681e837d0dae0f8842e2467",
+   "started": "2026-11-04T21:47:16",
+   "messages": 6
+  },
+  {
+   "file": "20261104_2206_local-38689b28cbb_export-sessions-to-json-files.json",
+   "title": "Export sessions to JSON files",
+   "session_id": "local-38689b28cbb95d12d0eaaa389e412c4ecbd6c9203c5dc0e53eecd429e7fc7b60",
+   "started": "2026-11-04T22:06:37",
+   "messages": 24
+  }
+ ]
+}
