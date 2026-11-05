@@ -10,12 +10,14 @@ layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec3 aColor;
 layout(location = 3) in float aMat;
 uniform mat4 uProj, uView, uModel;
+uniform float uTime;
 out vec3 vPos;
 out vec3 vNormal;
 out vec3 vColor;
 flat out int vMat;
 void main() {
   vec4 w = uModel * vec4(aPos, 1.0);
+  if (aMat > 7.5) w.xz += sin(uTime * vec2(1.7, 1.3) + w.zx * 0.25) * 0.15; // wind sways the leaves
   vPos = w.xyz;
   vNormal = mat3(uModel) * aNormal;
   vColor = aColor;
@@ -78,6 +80,7 @@ void main() {
   vec3 sky = mix(vec3(0.32, 0.3, 0.28), vec3(0.62, 0.7, 0.82), 0.5 + 0.5 * n.y);
   vec3 col = c * (vec3(1.0, 0.95, 0.86) * diff * 0.8 + sky * 0.55);
   col += spec * pow(max(dot(n, normalize(uSunDir + v)), 0.0), 48.0);
+  if (vMat == 7) col = c; // glowing: unlit
   float d = length(uEye - vPos) * uFogDensity;
   col = mix(col, uFogColor, 1.0 - exp(-d * d));
   outColor = vec4(col, alpha);

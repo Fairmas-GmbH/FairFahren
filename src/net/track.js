@@ -21,12 +21,11 @@ const GRID_MARGIN = 1.5; // corridor clear of the colliders on both sides
 
 /**
  * buildTrack(city, playerCount) →
- *   { street, start, grid, finish, ampel, corridor, laneZ }
+ *   { street, start, grid, finish, corridor, laneZ }
  *
  * - start   {x, z, heading}: the line the grid stands on
  * - grid    [{x, z, heading}]: exactly playerCount seats, pole position first
  * - finish  {x, z0, z1}: the chequered line segment across the racing lane
- * - ampel   {x, z, heading}: the start light pole, on the central line ahead
  * - corridor {x0, z0, x1, z1}: rect that must stay free of colliders, used
  *   by the invariant tests ("track is fully on road, nothing in the way")
  */
@@ -91,7 +90,6 @@ export function buildTrack(city, playerCount) {
     start,
     grid,
     finish,
-    ampel: { x: start.x + 12, z: boulevard.center, heading: -Math.PI / 2 },
     corridor,
     laneZ: start.z,
   };

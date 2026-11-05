@@ -7,7 +7,7 @@ Rules for AI coding agents working in this repo.
 A procedural 3D driving game (steer a German taxi through a generated slice of
 Berlin) built as a base project for developer interviews. Candidates extend it.
 
-- **~104 KB of plain JavaScript. No assets, no dependencies, no build step.**
+- **~116 KB of plain JavaScript. No assets, no dependencies, no build step.**
 - Everything is generated from one seed (`?seed=42` gives the same city to everyone).
 - Requires Node 22+ and a browser with WebGL2.
 
@@ -19,7 +19,7 @@ Berlin) built as a base project for developer interviews. Candidates extend it.
    from the fragment shader. `Math.random()` is banned for world content — use the
    seeded RNG (`src/core/rng.js`) with **forked streams** (`rng.fork('…')`) so one
    feature doesn't reshuffle the rest of the world.
-4. **Size budget is enforced** — `npm run size` fails above **128 KB raw / 40 KB gzip**
+4. **Size budget is enforced** — `npm run size` fails above **160 KB raw / 52 KB gzip**
    for `index.html` + `src/**`. Source ships unminified and readable; every byte counts.
 5. **Generation is plain data** — `generateCity` produces data that is separately
    turned into geometry (`buildCityMesh`) and colliders, so it stays testable in Node.

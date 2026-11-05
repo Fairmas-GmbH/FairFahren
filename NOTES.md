@@ -85,7 +85,7 @@ virtual clock, no sockets and no real time. Key decisions:
   and flip green when *it* arrives, not when the packet does.
 - **The track is pure data** (`src/net/track.js`): 200 m east on Unter den
   Linden from just past the gate's first crossing, grid seats side by side in
-  the racing lane, chequered line, ampel position — all validated against the
+  the racing lane, chequered line — all validated against the
   city colliders at build time, and identical for equal seeds.
 - Found and fixed while wiring: `conn.onClose(...)` in `main.mjs` *called*
   the callback slot (always null on a fresh socket) instead of assigning to
@@ -114,8 +114,7 @@ virtual clock, no sockets and no real time. Key decisions:
 - `src/net/clock.js` — master-clock maths: offset from pong samples,
   min-rtt-of-N filtering, `serverNow()`. Pure, DOM-free.
 - `src/net/track.js` — pure `buildTrack(city, playerCount)`: the 200 m start
-  straight, grid seats (validated place-only against colliders), finish line,
-  ampel position.
+  straight, grid seats (validated place-only against colliders), finish line.
 
 ## Phase 3 — players on each other's screens
 
@@ -166,10 +165,11 @@ panel and overlays stay hidden). The browser wiring lives in `src/main.js` +
   `jump` once via `sendRaw`, the server settles `+3000 ms` and broadcasts
   `jumped` (client.js now has the `jumped` case → `on.jumped`, shown live as a
   HUD chip and a ⚡-style sentence in the results).
-- **Ampel.** A static mesh (dark pole, housing, dim lamp sockets) plus ONE
-  mesh per light state at `track.ampel`; each frame only the active state is
-  drawn, driven by `ampelState(clock.serverNow(), goAt)`. While red the HUD
-  chip counts down the seconds to the shared `goAt`.
+- **Ampel.** Shown in the HUD, not in the world: a glass capsule at the top
+  centre (`#startLight`) with three lamps and a countdown digit (3 · 2 · 1 ·
+  LOS!), driven by `ampelState(clock.serverNow(), goAt)`. JS sets
+  `data-light` + the digit; CSS draws the glow and fades it out 1.5 s after
+  green (plan: `docs/plans/hud-start-light.md`).
 - **Finish.** Each physics step in `racing` compares prev/current (x, localT)
   via `crossingTime(…, track.finish.x)`; on a crossing the local time is
   converted with `clock.serverNow()` (falls back to local now while unsynced)

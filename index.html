@@ -35,6 +35,17 @@
   #modal { left: 50%; top: 50%; transform: translate(-50%, -50%); }
   #modal button, #againBtn { margin-top: 6px; cursor: pointer; }
   #againBtn { left: 50%; bottom: 90px; transform: translate(-50%, 0); font-weight: 600; }
+  /* Race start light: glass capsule, three lamps (red, amber, green), countdown digit. */
+  #startLight { position: fixed; left: 50%; top: 22px; display: flex; align-items: center; gap: 14px; padding: 12px 22px 12px 16px;
+    border-radius: 99px; background: rgba(12,15,20,.55); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,.14);
+    box-shadow: 0 12px 32px rgba(0,0,0,.35); pointer-events: none; opacity: 0; transform: translate(-50%, -12px); transition: opacity .35s, transform .35s; }
+  #startLight.on { opacity: 1; transform: translate(-50%, 0); }
+  #startLight i { width: 30px; height: 30px; border-radius: 50%; opacity: .16; transition: opacity .15s, box-shadow .15s;
+    background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.6), var(--c) 45%); }
+  #startLight i:nth-child(1) { --c: #ff3b30; } #startLight i:nth-child(2) { --c: #ffb300; } #startLight i:nth-child(3) { --c: #2ee06b; }
+  #startLight[data-light=red] i:nth-child(1), #startLight[data-light="red+amber"] i:nth-child(-n+2), #startLight[data-light=green] i:nth-child(3) { opacity: 1; box-shadow: 0 0 20px 3px var(--c); }
+  #startLight b { min-width: 2.4em; text-align: center; font: 700 30px/1 system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+  #startLight[data-light=green] b { color: #2ee06b; }
 </style>
 </head>
 <body>
@@ -50,6 +61,8 @@
   <kbd>C</kbd> camera · <kbd>V</kbd> sensor view · <kbd>R</kbd> reset · <code>?seed=42</code> new city
 </div>
 <div id="sensors" class="panel"><canvas></canvas></div>
+<div id="startLight"><i></i><i></i><i></i><b data-hud="light"></b></div>
+<div id="lobby" class="panel" hidden>
 
   <strong>Online-Rennen</strong> <span style="opacity:.7">· <code>?online</code></span>
   <div id="joinRow">

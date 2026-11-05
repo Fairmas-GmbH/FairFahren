@@ -32,12 +32,13 @@ The project is intentionally small, readable and dependency-free, so a candidate
 | FR-08 | HUD | Speed in km/h, current street name (or "A / B" on crossings, "… · Spreebrücke" on bridges), seed, FPS, camera mode, key help. |
 | FR-09 | Traffic signs in the city. | German signs on the right-hand sidewalk: speed limits 30/50 after crossings (per-street limit, Tempo-30 zones on side streets), priority-road signs along the boulevard, yield signs where side streets meet it. |
 | FR-10 | **Sensor view** — the environment "as the car sees it" (driver-assistance display). | HUD panel (toggle **V**), top-down and car-up: road edges/curbs, river, lane markings, detected objects (trees), 360° lidar returns, park-sensor bars with distance (green/amber/red), forward radar distance, recognised traffic signs with distance, active speed limit with speeding highlight, collision warning when time-to-collision < 1.6 s. Zooms in when slow, out when fast. |
+| FR-11 | **Street life.** | Pedestrians (some with dogs) walk the sidewalks, pigeons flee the taxi, bird flocks circle, swans and ducks swim on the Spree, trees sway in the wind, UFOs hover (one around the TV tower), planes pass low and high, and flying time-travel cars flash in and out over the streets. All seeded and deterministic; see `docs/plans/street-life.md`. |
 
 ## 4. Non-functional requirements
 
 | ID | Requirement | Measure |
 |---|---|---|
-| NFR-01 | **Size budget.** Shipped game (`index.html` + `src/**`) stays tiny. | ≤ 128 KB raw **and** ≤ 40 KB gzip, checked by `npm run size` (exit code 1 if exceeded). Base game: ~69 KB raw / ~25 KB gzip. |
+| NFR-01 | **Size budget.** Shipped game (`index.html` + `src/**`) stays tiny. | ≤ 160 KB raw **and** ≤ 52 KB gzip, checked by `npm run size` (exit code 1 if exceeded). Base game: ~116 KB raw / ~41 KB gzip. |
 | NFR-02 | **Fully procedural.** No binary or data assets. | No images, models, fonts, audio, JSON level files. Everything derived from code + seed. |
 | NFR-03 | **Zero dependencies.** | No runtime or dev npm dependencies; no CDN scripts. Node is only needed for the dev server, tests and size check. |
 | NFR-04 | **Performance.** | 60 FPS on a mid-range laptop with integrated GPU at 1080p. City = one draw call. Generation < 50 ms. |

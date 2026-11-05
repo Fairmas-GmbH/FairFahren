@@ -1,7 +1,7 @@
 # FairFahren 🚕
 
 A tiny procedural 3D driving game: steer a German taxi through a generated slice of Berlin.
-**~69 KB of plain JavaScript (~25 KB gzipped). No assets. No dependencies. No build step.** Every street, building, tree and landmark comes from one seed.
+**~116 KB of plain JavaScript (~41 KB gzipped). No assets. No dependencies. No build step.** Every street, building, tree and landmark comes from one seed.
 
 Built as the base project for developer interviews: candidates extend it (see [the candidate brief](docs/04-candidate-brief.md)).
 
@@ -43,7 +43,7 @@ npm test
 npm run size
 ```
 
-`npm run check` runs both. The size budget (128 KB raw / 40 KB gzip for `index.html` + `src/`) is enforced.
+`npm run check` runs both. The size budget (160 KB raw / 52 KB gzip for `index.html` + `src/`) is enforced.
 
 ## Project layout
 

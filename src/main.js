@@ -2,6 +2,7 @@
  * FairFahren — entry point. Wires world generation, physics, rendering and input.
  *
  *   generateCity(seed) ──► city data ──► buildCityMesh ──► GPU (static)
+ *                               └──► createLife ──► lifeMesh ──► GPU (every frame)
  *                               │
  *   Keyboard ──► stepCar ──► collideCar(city.colliders) ──► Camera ──► Renderer
  *
@@ -23,6 +24,7 @@ import { Hud } from './game/hud.js';
 import { SensorView } from './game/sensorView.js';
 import { createSensorState, senseEnvironment } from './vehicle/sensors.js';
 import { compose, translation, rotationX, rotationY, perspective, lookAt } from './core/math.js';
+import { createLife, lifeMesh } from './world/life.js';
 import { createNetClient } from './net/client.js';
 import { encode } from '../server/protocol.js';
 import { createInterp } from './net/remoteCar.js';
@@ -63,9 +65,17 @@ const sensorState = createSensorState();
 const sensorView = new SensorView(document.querySelector('#sensors'));
 
 // Handy for debugging in the browser console and for automated checks.
-window.fairfahren = { city, car, camera, TAXI, sensorState };
+window.fairfahren = { city, car, camera, TAXI, sensorState, ENV };
 
 let last = performance.now(), accumulator = 0, fps = 60;
+let life = createLife(city), lifeGpu = null;
+
+/** Street life: rebuilt every frame into one dynamic mesh, one draw call. scare: is the taxi visible? */
+function drawLife(dt, scare) {
+  window.fairfahren.life = life;
+  lifeGpu = renderer.upload(lifeMesh(life, ENV.time, dt, car, scare), lifeGpu);
+  renderer.draw(lifeGpu);
+}
 
 // ---------------------------------------------------------------------------
 // Online mode
@@ -82,11 +92,11 @@ const ui = {
   startBtn: document.querySelector('#startBtn'), status: document.querySelector('#netStatus'),
   results: document.querySelector('#results'), modal: document.querySelector('#modal'),
   modalMsg: document.querySelector('#modalMsg'), reloadBtn: document.querySelector('#reloadBtn'),
-  againBtn: document.querySelector('#againBtn'),
+  againBtn: document.querySelector('#againBtn'), light: document.querySelector('#startLight'),
 };
 
 let net = null, selfId = null, goAt = null, gate = null, track = null, trackFor = '';
-let ampel = null, gridded = false, prevCross = null, lastPos = 0, results = null;
+let gridded = false, prevCross = null, lastPos = 0, results = null;
 let myFinish = null, pendingFinish = null, ownT = null, otherFinishes = [], podium = null, orbit = 0;
 let terminated = false; // turn-away or dropped: the modal owns the screen from here
 const remotes = new Map(); // peer id → { interp, spin }
@@ -150,6 +160,7 @@ function rebuildWorld(seed) {
   city = generateCity({ seed });
   window.fairfahren.city = city;
   cityMesh = renderer.upload(buildCityMesh(city));
+  life = createLife(city);
   track = null; trackFor = '';
   hud.set('seed', `Seed ${city.seed}`);
 }
@@ -162,7 +173,7 @@ function onRoster(players) {
     `<li><span class="dot" style="background:${cssColor(i)}"></span>${escapeHtml(p.name)}</li>`).join('');
 }
 
-/** One seed/player-count step: rebuild the pure track + the ampel scenery. */
+/** One seed/player-count step: rebuild the pure track. */
 function ensureTrack(n) {
   const want = `${city.seed}/${n}`;
   if (track && trackFor === want) return;
@@ -170,7 +181,6 @@ function ensureTrack(n) {
   try {
     track = buildTrack(city, n);
     trackFor = want;
-    buildScenery();
   } catch (err) {
     // A seed whose city cannot host the 200 m track means no race — say so on
     // screen (terminated guards the per-frame retries) instead of hiding it.
@@ -205,27 +215,17 @@ function gridSelf() {
   if (slot) { gridded = true; Object.assign(car, createCar(slot)); camera.snap(); }
 }
 
-/** Ampel for the current track: dark pole + housing, one lit-lamp mesh per state. */
-function buildScenery() {
-  const a = track.ampel, dark = rgb(0x24282e);
-  const base = new MeshBuilder();
-  base.box(a.x - 0.14, 0, a.z - 0.14, a.x + 0.14, 2.7, a.z + 0.14, dark, { mat: MAT.PAINT });
-  base.box(a.x - 0.3, 2.7, a.z - 0.18, a.x + 0.3, 3.75, a.z + 0.18, dark, { mat: MAT.PAINT });
-  for (const y of [2.78, 3.06, 3.34]) base.box(a.x - 0.12, y, a.z + 0.18, a.x + 0.12, y + 0.22, a.z + 0.21, rgb(0x14161a));
-  const lit = { red: 0xe02020, amber: 0xf5a000, green: 0x22cc44 };
-  const on = { red: ['red'], 'red+amber': ['red', 'amber'], green: ['green'] };
-  const yOf = { green: 2.78, amber: 3.06, red: 3.34 };
-  ampel = {
-    base: renderer.upload(base),
-    lamp: Object.fromEntries(Object.entries(on).map(([state, names]) => {
-      const b = new MeshBuilder();
-      for (const n of names) {
-        const y = yOf[n];
-        b.box(a.x - 0.12, y, a.z + 0.18, a.x + 0.12, y + 0.22, a.z + 0.23, rgb(lit[n]), { mat: MAT.PAINT });
-      }
-      return [state, renderer.upload(b)];
-    })),
-  };
+/**
+ * HUD start light (Ampel): lamps follow the shared-clock `light`, the digit
+ * counts the seconds to green. Shown through the countdown and 1.5 s past
+ * green; CSS does the look and the fade (index.html #startLight).
+ */
+function updateStartLight(st, light, sNow) {
+  const on = !!light && (st === 'countdown' || st === 'racing') && sNow - goAt < 1500;
+  ui.light.classList.toggle('on', on);
+  if (!light) return;
+  ui.light.dataset.light = light;
+  hud.set('light', light === 'green' ? 'LOS!' : String(Math.max(1, Math.ceil((goAt - sNow) / 1000))));
 }
 
 /** Server-settled results: place, name, official time (+penalty sentence), DNF. */
@@ -300,11 +300,11 @@ function stripeMesh(i) {
   return stripes[i];
 }
 
-/** Status chip next to the fps: stage word, ampel digits while red, jump flags. */
-function chipText(st, light, sNow) {
+/** Status chip next to the fps: stage word and jump flags (the HUD light counts down). */
+function chipText(st) {
   let t = { connecting: 'Verbinde …', lobby: 'Lobby', finished: 'Ziel', ceremony: 'Siegerehrung' }[st];
   if (st === 'racing') t = 'Rennen';
-  if (st === 'countdown') t = light && light !== 'green' ? `Ampel ${Math.max(0, Math.ceil((goAt - sNow) / 1000))}` : 'Ampel';
+  if (st === 'countdown') t = 'Ampel';
   const pen = [...jumps].map(([id, pen]) => `${nameOf(id)} Ampel! +${(pen / 1000).toFixed(1)} s`).join(' · ');
   return (t ?? '') + (pen ? ` · ${pen}` : '');
 }
@@ -378,10 +378,7 @@ function onlineFrame(now, dt) {
 
   renderer.beginFrame(view, ENV);
   renderer.draw(cityMesh);
-  if (ampel) {
-    renderer.draw(ampel.base);
-    if (light) renderer.draw(ampel.lamp[light]); // only the active lamp mesh
-  }
+  drawLife(dt, gridded && st !== 'lobby' && st !== 'ceremony');
 
   for (const [id, r] of remotes) { // ghosts run ~100 ms behind the render clock
     const s = r.interp.sample(now);
@@ -403,7 +400,8 @@ function onlineFrame(now, dt) {
 
   hud.set('speed', String(Math.round(Math.abs(car.speed) * 3.6)));
   hud.set('street', streetAt(city, car.x, car.z));
-  hud.set('net', chipText(st, light, sNow));
+  hud.set('net', chipText(st));
+  updateStartLight(st, light, sNow);
   hud.set('pos', posText(st));
 }
 
@@ -439,8 +437,9 @@ function step(now, dt) {
     camera.update(car, dt);
     renderer.beginFrame(camera.matrices(renderer.resize()), ENV);
     renderer.draw(cityMesh);
+    drawLife(dt, false);
   } else {
-    // Solo: byte-for-byte the pre-multiplayer behaviour.
+    // Solo: the pre-multiplayer behaviour, plus street life.
     if (keyboard.consume('KeyR')) {
       Object.assign(car, createCar(city.spawn));
       camera.snap();
@@ -454,6 +453,7 @@ function step(now, dt) {
     camera.update(car, dt);
     renderer.beginFrame(camera.matrices(renderer.resize()), ENV);
     renderer.draw(cityMesh);
+    drawLife(dt, true);
     drawCar(car.x, car.z, car.heading, -1, car.wheelSpin, car.steer);
     hud.set('speed', String(Math.round(Math.abs(car.speed) * 3.6)));
     hud.set('street', streetAt(city, car.x, car.z));

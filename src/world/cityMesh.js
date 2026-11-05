@@ -130,7 +130,7 @@ function addTree(m, t) {
   const s = t.s, trunk = 2.4 * s;
   m.frustum(t.x, t.y, t.z, 0.22 * s, t.y + trunk, 0.16 * s, 5, C.trunk);
   const leaf = C.leaves[Math.abs(Math.floor(t.x * 7 + t.z * 13)) % 3];
-  m.sphere(t.x, t.y + trunk + 2.4 * s, t.z, 2.4 * s, 7, 4, leaf, MAT.PLAIN, 1.2);
+  m.sphere(t.x, t.y + trunk + 2.4 * s, t.z, 2.4 * s, 7, 4, leaf, MAT.LEAF, 1.2);
 }
 
 const LANDMARKS = {

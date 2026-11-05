@@ -4,7 +4,7 @@ import { identity } from '../core/math.js';
 
 const UNIFORMS = ['uProj', 'uView', 'uModel', 'uEye', 'uSunDir', 'uFogColor', 'uFogDensity', 'uTime'];
 
-/** Thin WebGL2 wrapper: one program, static meshes, one draw call per mesh. */
+/** Thin WebGL2 wrapper: one program, static or refillable meshes, one draw call per mesh. */
 export class Renderer {
   constructor(canvas) {
     const gl = canvas.getContext('webgl2', { antialias: true });
@@ -19,22 +19,26 @@ export class Renderer {
   }
 
   /** Uploads a MeshBuilder to the GPU. Returns a handle for draw(). */
-  upload(builder) {
-    const gl = this.gl;
-    const vao = gl.createVertexArray();
-    gl.bindVertexArray(vao);
-    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(builder.vertices), gl.STATIC_DRAW);
+  upload(builder, mesh = null) {
+    // Pass the mesh from an earlier upload to refill its buffers (per-frame geometry, no leak).
+    const gl = this.gl, usage = mesh ? gl.DYNAMIC_DRAW : gl.STATIC_DRAW;
+    const m = mesh ?? { vao: gl.createVertexArray(), vbo: gl.createBuffer(), ibo: gl.createBuffer() };
+    gl.bindVertexArray(m.vao);
+    gl.bindBuffer(gl.ARRAY_BUFFER, m.vbo);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(builder.vertices), usage);
     const stride = FLOATS_PER_VERTEX * 4;
-    [3, 3, 3, 1].reduce((offset, size, loc) => {
-      gl.enableVertexAttribArray(loc);
-      gl.vertexAttribPointer(loc, size, gl.FLOAT, false, stride, offset * 4);
-      return offset + size;
-    }, 0);
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(builder.indices), gl.STATIC_DRAW);
+    if (!mesh) {
+      [3, 3, 3, 1].reduce((offset, size, loc) => {
+        gl.enableVertexAttribArray(loc);
+        gl.vertexAttribPointer(loc, size, gl.FLOAT, false, stride, offset * 4);
+        return offset + size;
+      }, 0);
+    }
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, m.ibo);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(builder.indices), usage);
     gl.bindVertexArray(null);
-    return { vao, count: builder.indices.length };
+    m.count = builder.indices.length;
+    return m;
   }
 
   /** Matches the drawing buffer to the CSS size. Returns the aspect ratio. */

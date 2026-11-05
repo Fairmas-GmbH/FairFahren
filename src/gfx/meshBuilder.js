@@ -20,6 +20,8 @@ export const MAT = {
   ASPHALT: 4,
   PAINT: 5, // glossy (car paint, glass, metal)
   SHADOW: 6, // soft blob shadow, color.xy carries the uv
+  GLOW: 7, // unlit lights (UFOs, planes, flashes)
+  LEAF: 8, // sways in the wind (vertex shader)
 };
 
 /** 0xRRGGBB -> [r, g, b] in 0..1 */

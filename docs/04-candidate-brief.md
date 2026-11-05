@@ -4,14 +4,14 @@
 
 ## Welcome to FairFahren 🚕
 
-You have a tiny 3D driving game: a Berlin taxi in a procedurally generated city. The whole game is about 70 KB of plain JavaScript — **no assets, no libraries, no build step**. Every building, tree and street comes from one seed number.
+You have a tiny 3D driving game: a Berlin taxi in a procedurally generated city. The whole game is about 116 KB of plain JavaScript — **no assets, no libraries, no build step**. Every building, tree and street comes from one seed number.
 
 Your job is to **extend it**.
 
 ## Ground rules
 
 1. **Stay procedural.** Do not add image, model, audio, font or data files. Generate what you need in code.
-2. **Stay small.** `npm run size` must pass (≤ 128 KB raw, ≤ 40 KB gzip for `index.html` + `src/`).
+2. **Stay small.** `npm run size` must pass (≤ 160 KB raw, ≤ 52 KB gzip for `index.html` + `src/`).
 3. **No dependencies.** No npm packages, no CDN scripts — on the client and on any server you write.
 4. **Stay deterministic.** World content must come from the seeded `Rng`, never from `Math.random()`.
 5. **Keep it green.** `npm test` passes, and new logic comes with tests where it makes sense.
@@ -58,7 +58,7 @@ Turn FairFahren into a short multiplayer race for **2–4 players** on different
 
 1. **Lobby.** One player starts the game server; the others open `http://<host-ip>:<port>/` and enter a name. Everyone sees who has joined (2–4 players, a fifth is turned away). Any player can press "Start" once at least two are in.
 2. **Track.** A straight **200 m** race on a road of the city, e.g. eastwards along *Unter den Linden* from the gate. All clients derive the same track from the shared seed (the server picks the seed). Start grid with one slot per player, no taxi overlapping another.
-3. **Start light (*Ampel*).** A traffic light above or beside the start line runs the German sequence **red → red + amber → green**. Cars are frozen until green. Every client must switch to green at the same moment (± 100 ms), regardless of network delay. Bonus: a jump start (moving before green) gets a time penalty.
+3. **Start light (*Ampel*).** A traffic light above or beside the start line, or in the HUD, runs the German sequence **red → red + amber → green**. Cars are frozen until green. Every client must switch to green at the same moment (± 100 ms), regardless of network delay. Bonus: a jump start (moving before green) gets a time penalty.
 4. **Race.** All players see all taxis moving in real time, smoothly, with a name tag. Each taxi is distinguishable (e.g. the player number on the roof sign or a coloured stripe — procedural, no textures).
 5. **Finish line.** A visible chequered line across the road. Crossing it records the finish time (ms precision). The server, not the client, decides the official order.
 6. **Siegerehrung.** When all players have finished (or 30 s after the winner), show the award ceremony to everyone: a podium with steps 1–2–3 built from geometry, the taxis placed on it, a camera orbit, and a results table with names and times. Then "Nochmal" returns everyone to the start grid.

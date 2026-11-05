@@ -52,9 +52,6 @@ for (const seed of SEEDS) {
       const overlapping = city.colliders.filter(
         (x) => x.type === 'box' && x.x0 < c.x1 && x.x1 > c.x0 && x.z0 < c.z1 && x.z1 > c.z0);
       assert.deepEqual(overlapping, [], `colliders in corridor: ${JSON.stringify(overlapping)}`);
-
-      // The ampel stands near the line, ahead of the grid.
-      assert.ok(track.ampel.x > track.start.x && track.ampel.x - track.start.x < 30);
     });
   }
 }

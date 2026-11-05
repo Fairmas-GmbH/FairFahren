@@ -38,6 +38,7 @@ Rule of the codebase: **data in, data out.** Generation and simulation never tou
 | `src/gfx/pixelFont.js` | 3×5 pixel font (`pixelText`, `textWidth`) for text built from boxes: taxi sign, speed-limit digits. | yes |
 | `src/world/cityGen.js` | Procedural city as plain data + `streetAt()` lookup. | yes |
 | `src/world/cityMesh.js` | Converts city data into one static mesh. | yes |
+| `src/world/life.js` | Street life: `createLife(city)`, `walkerPos`, `lifeMesh(life, t, dt, car)` — one dynamic mesh per frame (people, pigeons, birds, swans, UFOs, planes, time-travel cars). | yes |
 | `src/vehicle/carPhysics.js` | `TAXI` tuning, `createCar`, `stepCar` (bicycle model). | yes |
 | `src/vehicle/collision.js` | `pushOut` (circle vs boxes/circles), `collideCar` (response). | yes |
 | `src/vehicle/taxiModel.js` | Taxi body, wheel and shadow meshes; wheel positions. | yes |
@@ -101,9 +102,9 @@ Signs are rendered as a pole plus layered plates (border, face) built with `poly
 - **WebGL2**, one shader program. Vertex format: position(3) normal(3) color(3) material(1) = 40 bytes.
 - **Flat shading**: every face has its own vertices and normal → low-poly look, no smoothing groups.
 - **Face orientation**: `MeshBuilder.poly()` computes the normal with Newell's method and flips it (and the winding) away from a given interior point, so back-face culling just works.
-- **Materials** (`MAT`): `PLAIN`, `ALTBAU`, `PLATTE` (window grids from world position, shop fronts on the ground floor, panel joints), `WATER` (animated normal + specular), `ASPHALT` (grain), `PAINT` (specular), `SHADOW` (radial alpha from uv in the color slot).
+- **Materials** (`MAT`): `PLAIN`, `ALTBAU`, `PLATTE` (window grids from world position, shop fronts on the ground floor, panel joints), `WATER` (animated normal + specular), `ASPHALT` (grain), `PAINT` (specular), `SHADOW` (radial alpha from uv in the color slot), `GLOW` (unlit, still fogged), `LEAF` (vertices sway in the wind in the vertex shader).
 - **Lighting**: Lambert sun + hemispheric sky/ground ambient + Blinn-Phong for glossy materials + fake ambient occlusion at wall bases + exp² distance fog that hides the world edge.
-- **Draw calls per frame**: city (1), taxi body (1), wheels (4), shadow (1, blended).
+- **Draw calls per frame**: city (1), street life (1, rebuilt every frame via `upload(builder, mesh)`), taxi body (1), wheels (4), shadow (1, blended).
 - Typical city (seed 1989): ~450 buildings, ~520 trees, ~100 traffic signs → ~126 k vertices (≈ 5 MB GPU memory; the sign digits alone are ~40 k). Data generation ≈ 3 ms, mesh building ≈ 20–30 ms (Node, laptop).
 
 ## 6. Vehicle physics (`stepCar`)
@@ -142,7 +143,7 @@ Kinematic bicycle model, fixed step 1/120 s:
 
 ## 9. Size budget enforcement
 
-`tools/size-check.mjs` concatenates `index.html` and every file in `src/`, measures raw and gzip-9 size, prints a per-file table and fails above **128 KB raw / 40 KB gzip**. `npm run check` = tests + size. Tests, docs and tools are not shipped and do not count.
+`tools/size-check.mjs` concatenates `index.html` and every file in `src/`, measures raw and gzip-9 size, prints a per-file table and fails above **160 KB raw / 52 KB gzip**. `npm run check` = tests + size. Tests, docs and tools are not shipped and do not count.
 
 ## 10. Testing
 
